@@ -1,8 +1,6 @@
 import { MetaNode } from '@/spec/metanode'
 import { z } from 'zod'
 import python from '@/utils/python'
-import { GeneTerm } from '@/components/core/term'
-import { GeneInfo, GeneInfoFromGeneTerm } from '@/components/service/mygeneinfo'
 import { Table, Cell, Column } from '@/app/components/Table'
 import { drug_icon } from '@/icons'
 import { downloadBlob } from '@/utils/download'
@@ -16,52 +14,15 @@ export const DrugCytotoxictyChembl = MetaNode(`[DrugCytotoxictyChemblTable]`)
         icon: [drug_icon]
     })
     .codec(z.array(z.object({
-        //action_type: z.string(),
-        activity_comment: z.string().nullable(),
         activity_id: z.number(),
-        //activity_properties:z.object(),
-        assay_chembl_id: z.string().nullable(),
         assay_description: z.string().nullable(),
         assay_type: z.string(),
-        assay_variant_accession: z.string().nullable(),
-        assay_variant_mutation: z.string().nullable(),
-        bao_endpoint: z.string().nullable(),
-        bao_format: z.string().nullable(),
-        bao_label: z.string().nullable(),
-        canonical_smiles: z.string().nullable(),
-        data_validity_comment: z.string().nullable(),
-        data_validity_description: z.string().nullable(),
-        document_chembl_id: z.string().nullable(),
-        document_journal: z.string().nullable(),
-        document_year: z.number().nullable(),
-        //ligand_efficiency: z.string(),
-        molecule_chembl_id: z.string(),
         molecule_pref_name: z.string(),
-        parent_molecule_chembl_id: z.string().nullable(),
-        pchembl_value: z.number(),
-        potential_duplicate: z.number().nullable(),
-        qudt_units: z.string().nullable(),
-        record_id: z.number().nullable(),
-        relation: z.string().nullable(),
-        src_id: z.number().nullable(),
-        standard_flag: z.number().nullable(),
-        standard_relation: z.string().nullable(),
-        standard_text_value: z.string().nullable(),
         standard_type: z.string().nullable(),
         standard_units: z.string().nullable(),
-        standard_upper_value: z.number().nullable(),
         standard_value: z.number().nullable(),
-        target_chembl_id: z.string().nullable(),
-        target_organism: z.string().nullable(),
         target_pref_name: z.string().nullable(),
-        target_tax_id: z.string().nullable(),
-        text_value: z.string().nullable(),
-        toid: z.number().nullable(),
-        type: z.string().nullable(),
-        units: z.string().nullable(),
-        uo_units: z.string().nullable(),
-        upper_value: z.number().nullable(),
-        value: z.number().nullable()
+        pchembl_value: z.number(),
     })))
     .view(drugCytotoxicityTable => {
         return (
@@ -71,34 +32,49 @@ export const DrugCytotoxictyChembl = MetaNode(`[DrugCytotoxictyChemblTable]`)
                 numRows={drugCytotoxicityTable.length}
                 enableGhostCells
                 enableFocusedCell
+                downloads={{
+                    JSON: () => downloadBlob(new Blob([JSON.stringify(drugCytotoxicityTable)], { type: 'application/json;charset=utf-8' }), 'data.json'),
+                    CSV: () => downloadBlob(new Blob([
+                        [
+                            `Activity ID, Assay Description, Assay Type, Drug Name, Standard Type, Standard Units, Standard Value, Target pref Name, PCHEMBL Value`,
+                            ...(drugCytotoxicityTable.map((record) => [
+                                record.activity_id,
+                                record.assay_description,
+                                record.assay_type,
+                                record.molecule_pref_name,
+                                record.standard_type,
+                                record.standard_units,
+                                record.standard_value,
+                                record.target_pref_name,
+                                record.pchembl_value,
+                            ].join(',')))
+                        ].join('\n')
+                    ], { type: 'text/csv;charset=utf-8' }), 'data.csv')
+                }}
             >
                 <Column
                     name="Drug Name"
                     cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].molecule_pref_name}</Cell>}
                 />
                 <Column
-                    name="PCHEMBL Value"
-                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].pchembl_value}</Cell>}
-                />
-                <Column
-                    name="Molecule CHEMBL ID"
-                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].molecule_chembl_id}</Cell>}
-                />
-                <Column
-                    name="Parent Molecule CHEMBL ID"
-                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].parent_molecule_chembl_id}</Cell>}
-                />
-                <Column
                     name="Activity ID"
                     cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].activity_id}</Cell>}
                 />
                 <Column
-                    name="Assay CHEMBL ID"
-                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].assay_chembl_id}</Cell>}
+                    name="Assay Description"
+                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].assay_description}</Cell>}
                 />
                 <Column
-                    name="Target CHEMBL ID"
-                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].target_chembl_id}</Cell>}
+                    name="Assay Type"
+                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].assay_type}</Cell>}
+                />
+                <Column
+                    name="PCHEMBL Value"
+                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].pchembl_value}</Cell>}
+                />
+                <Column
+                    name="Standard Type"
+                    cellRenderer={row => <Cell key={row + ''}>{drugCytotoxicityTable[row].standard_type}</Cell>}
                 />
                 <Column
                     name="Standard Units"

@@ -12,7 +12,22 @@ def main(drugs: list[dict]):
     for batch in batch_generator(large_drug_list, batch_size):
         results = query_drug_cytotoxicty_from_chembl(batch)
 
-    return pd.DataFrame(results).to_dict(orient="records")
+    cols = [
+        "activity_id",
+        "assay_description",
+        "assay_type",
+        "molecule_pref_name",
+        "standard_type",
+        "standard_units",
+        "standard_value",
+        "target_pref_name",
+        "pchembl_value",
+    ]
+    return (
+        pd.DataFrame(results)[cols]
+        .sort_values("molecule_pref_name")
+        .to_dict(orient="records")
+    )
 
 
 def batch_generator(large_drug_list: list[str], batch_size: int):
