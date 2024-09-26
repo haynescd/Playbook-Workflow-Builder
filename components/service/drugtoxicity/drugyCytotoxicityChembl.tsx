@@ -98,12 +98,12 @@ export const QueryDrugCytotoxocityCHEMBL = MetaNode('QueryDrugCytotoxocityCHEMBL
     .output(DrugCytotoxictyChembl)
     .resolve(async (props) => {
         return await python(
-            'components.service.drugtoxicity.main',
+            'components.service.drugtoxicity.query_drug_cytotoxicty_from_chembl',
             { kargs: [props.inputs.ScoredDrugs] },
             message => props.notify({ type: 'info', message }),
         )
     })
     .story(props => ({
-        abstract: `Cytotoxicity Results where queried for Drugs`
+        abstract: `Cytotoxicity Results where queried for Drugs via the CHEMBL API`
     }))
     .build()
