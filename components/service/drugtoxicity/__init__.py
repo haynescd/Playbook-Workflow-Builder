@@ -199,6 +199,7 @@ def query_drug_bbb_from_b3db(drug_scores: list[dict]):
 
     # URL to the B3DB classification data (Blood-Brain Barrier permeability information)
     b3db_url = "https://raw.githubusercontent.com/theochem/B3DB/refs/heads/main/B3DB/B3DB_classification.tsv"
+
     # Read the B3DB data from the URL as a DataFrame, specifying tab as the delimiter
     b3db_df = pd.read_csv(b3db_url, sep="\t")
 
@@ -212,6 +213,9 @@ def query_drug_bbb_from_b3db(drug_scores: list[dict]):
     df = df.fillna("")
     # Remove any duplicate rows that may have been introduced during the merge
     df.drop_duplicates()
+
+    # Filter values out that don't have both logBB and BBB+/BBB- fields
+    df = df[(df["logBB"] != "") & (df["BBB+/BBB-"] != "")]
 
     # Rename the "BBB+/BBB-" column to a more readable format, "bbb_permeable"
     df = df.rename(columns={"BBB+/BBB-": "bbb_permeable"})
