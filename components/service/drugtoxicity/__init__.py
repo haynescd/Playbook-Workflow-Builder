@@ -1,3 +1,42 @@
+"""
+Module: Drug Cytotoxicity, Blood-Brain Barrier (BBB) Permeability, and Candidate Ranking
+
+This module provides a set of functions to query external databases like ChEMBL and B3DB to retrieve
+drug-related data such as cytotoxicity assay information and blood-brain barrier (BBB) permeability.
+Additionally, the module includes functionality to rank drug candidates based on a combination of
+cytotoxicity data and user-provided confidence scores.
+
+Key Functions:
+--------------
+1. query_drug_cytotoxicty_from_chembl(drugs: list[dict]) -> list[dict]:
+   - Queries the ChEMBL database for cytotoxicity assay data for a given list of drugs.
+
+2. batch_generator(large_drug_list: list[str], batch_size: int) -> list[str]:
+   - A helper generator function to split a large list of drug names into batches.
+
+3. query_chembl_api(drugs_to_query: list[str]) -> list[dict]:
+   - Queries the ChEMBL API for cytotoxicity assay data for a specific batch of drugs.
+
+4. produce_ranked_drug_candidates(drug_scores: list[dict], drug_cytotoxicity_chembl: list[dict]) -> list[dict]:
+   - Produces a ranked list of drug candidates based on the combination of cytotoxicity and confidence z-scores.
+
+5. query_drug_bbb_from_b3db(drug_scores: list[dict]) -> list[dict]:
+   - Queries the B3DB (Blood-Brain Barrier Database) for BBB permeability data and merges it with drug scores.
+
+Dependencies:
+-------------
+- pandas: For DataFrame operations and data manipulation.
+- requests: For making API calls to external databases like ChEMBL.
+
+Usage Example:
+--------------
+1. Provide a list of drugs with confidence scores and cytotoxicity data from ChEMBL.
+2. Use `produce_ranked_drug_candidates()` to rank drugs based on their cytotoxicity and confidence z-scores.
+3. Optionally, query B3DB using `query_drug_bbb_from_b3db()` to retrieve additional data about blood-brain barrier
+   permeability.
+
+"""
+
 import pandas as pd
 import requests
 
@@ -141,3 +180,40 @@ def produce_ranked_drug_candidates(
     return ranked_drug_candidates_df.sort_values("confidence_zscore").to_dict(
         orient="records"
     )
+
+
+def query_drug_bbb_from_b3db(drug_scores: list[dict]):
+    """
+    Query the B3DB database for blood-brain barrier (BBB) permeability data and merge it with drug scores.
+
+    Args:
+        drug_scores (list[dict]): List of drugs with their respective scores, where each drug has a "term" key.
+
+    Returns:
+        list[dict]: A list of dictionaries containing drug names, logBB values, and BBB permeability status.
+    """
+    # Convert the list of drug scores into a DataFrame and rename "term" column to "drug_name"
+    drug_scores_df = pd.DataFrame.from_dict(drug_scores).rename(
+        columns={"term": "drug_name"}
+    )
+
+    # URL to the B3DB classification data (Blood-Brain Barrier permeability information)
+    b3db_url = "https://raw.githubusercontent.com/theochem/B3DB/refs/heads/main/B3DB/B3DB_classification.tsv"
+    # Read the B3DB data from the URL as a DataFrame, specifying tab as the delimiter
+    b3db_df = pd.read_csv(b3db_url, sep="\t")
+
+    # Perform a left join to merge the drug scores with the B3DB data on the drug names
+    # Retain only the relevant columns: drug name, logBB value (permeability coefficient), and BBB status
+    df = pd.merge(
+        drug_scores_df, b3db_df, left_on="drug_name", right_on="compound_name"
+    )[["drug_name", "logBB", "BBB+/BBB-"]]
+
+    # Replace any NaN values with empty strings for cleaner output
+    df = df.fillna("")
+    # Remove any duplicate rows that may have been introduced during the merge
+    df.drop_duplicates()
+
+    # Rename the "BBB+/BBB-" column to a more readable format, "bbb_permeable"
+    df = df.rename(columns={"BBB+/BBB-": "bbb_permeable"})
+    # Sort the DataFrame by drug name for better readability and convert the result to a list of dictionaries
+    return df.sort_values("drug_name").to_dict(orient="records")
