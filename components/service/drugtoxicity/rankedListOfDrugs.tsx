@@ -7,6 +7,7 @@ import { downloadBlob } from '@/utils/download'
 import { ScoredDrugs } from '@/components/core/scored'
 import { Button } from '@blueprintjs/core'
 import { DrugCytotoxictyChembl } from './drugyCytotoxicityChembl'
+import { DrugBloodBrainBarrier } from './drugBloodBrainBarrierPermeability'
 
 
 export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
@@ -19,15 +20,17 @@ export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
         drug_name: z.string(),
         confidence_zscore: z.string(),
         cytotoxicity_mean: z.string(),
+        logBB: z.number(),
+        bbb_permeable: z.string(),
     })))
     .view(rankedListTable => {
         return (
             <div className="flex flex-col gap-2">
-                <div className="flex flex-row gap-2">
+                {/* <div className="flex flex-row gap-2">
                     <Button>Sort Drug Name</Button>
                     <Button>Sort Confidence Score</Button>
                     <Button>Sort Cytotoxicity</Button>
-                </div>
+                </div> */}
                 <Table
                     height={500}
                     cellRendererDependencies={[rankedListTable]}
@@ -48,6 +51,14 @@ export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
                         name="Cytotoxicity Mean"
                         cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_mean}</Cell>}
                     />
+                    <Column
+                        name="LogBB"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].logBB}</Cell>}
+                    />
+                    <Column
+                        name="BBB+/BBB-"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].bbb_permeable}</Cell>}
+                    />
                 </Table>
             </div>
         )
@@ -58,12 +69,12 @@ export const RankedListDrugToxicity = MetaNode(`[RankedListOfDrugsCandidates]`)
         label: 'Ranked List of Drug Candidates',
         description: 'Rank List of Drug Candidates via Cytotoxicity, Blood Brain Barrier, and Confidence Score'
     })
-    .inputs({ ScoredDrugs, DrugCytotoxictyChembl })
+    .inputs({ ScoredDrugs, DrugCytotoxictyChembl, DrugBloodBrainBarrier })
     .output(RankedDrugToxicity)
     .resolve(async (props) => {
         return await python(
             'components.service.drugtoxicity.produce_ranked_drug_candidates',
-            { kargs: [props.inputs.ScoredDrugs, props.inputs.DrugCytotoxictyChembl] },
+            { kargs: [props.inputs.ScoredDrugs, props.inputs.DrugCytotoxictyChembl, props.inputs.DrugBloodBrainBarrier] },
             message => props.notify({ type: 'info', message }),
         )
     })
