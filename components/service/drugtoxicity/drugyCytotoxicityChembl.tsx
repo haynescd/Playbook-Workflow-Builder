@@ -104,6 +104,6 @@ export const QueryDrugCytotoxocityCHEMBL = MetaNode('QueryDrugCytotoxocityCHEMBL
         )
     })
     .story(props => ({
-        abstract: `Cytotoxicity Results where queried for Drugs via the CHEMBL API`
+        abstract: `Cytotoxicity Results where queried for ${props.inputs?.ScoredDrugs.length} Drugs via the CHEMBL API`
     }))
     .build()

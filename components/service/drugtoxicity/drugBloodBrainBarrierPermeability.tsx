@@ -15,8 +15,8 @@ export const DrugBloodBrainBarrier = MetaNode(`[DrugBloodBrainBarrierTable]`)
         icon: [drug_icon]
     })
     .codec(z.array(z.object({
-        drug_name: z.number(),
-        logBB: z.string(),
+        drug_name: z.string(),
+        logBB: z.number(),
         bbb_permeable: z.string(),
     })))
     .view(drugBloodBrainBarrierTable => {
