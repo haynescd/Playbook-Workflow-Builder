@@ -157,49 +157,57 @@ def produce_ranked_drug_candidates(
     drug_scores_df = pd.DataFrame.from_dict(drug_scores).rename(
         columns={"zscore": "confidence_zscore", "term": "drug_name"}
     )
-    drug_cytotoxicity_df = pd.DataFrame.from_dict(
-        drug_cytotoxicity_chembl
-    ).rename(columns={"molecule_pref_name": "drug_name"})
+    drug_cytotoxicity_df = (
+        pd.DataFrame.from_dict(drug_cytotoxicity_chembl)
+        .add_prefix("cytotoxicity_")
+        .rename(columns={"cytotoxicity_molecule_pref_name": "drug_name"})
+    )
 
     bbb_df = pd.DataFrame.from_dict(drug_bbb)
 
-    # Calculate the mean cytotoxicity value for each drug
-    mean_cytooxicity_df = (
-        drug_cytotoxicity_df[["drug_name", "standard_value"]]
-        .groupby("drug_name", as_index=False)
-        .mean()
-    )
-
     # Convert drug names to lowercase for consistency
-    mean_cytooxicity_df["drug_name"] = mean_cytooxicity_df[
+    drug_cytotoxicity_df["drug_name"] = drug_cytotoxicity_df[
         "drug_name"
     ].str.lower()
 
     # Merge cytotoxicity data with drug scores based on drug names
     ranked_drug_candidates_df = pd.merge(
-        drug_scores_df, mean_cytooxicity_df, how="left", on="drug_name"
+        drug_scores_df, drug_cytotoxicity_df, how="left", on="drug_name"
     )
 
     ranked_drug_candidates_df = pd.merge(
         ranked_drug_candidates_df, bbb_df, how="left", on="drug_name"
     )
 
-    # Rename column for clarity
-    ranked_drug_candidates_df = ranked_drug_candidates_df.rename(
-        columns={"standard_value": "cytotoxicity_mean"}
-    )
-
     ranked_drug_candidates_df = ranked_drug_candidates_df.fillna("")
 
-    ranked_drug_candidates_df = ranked_drug_candidates_df[
-        [
-            "drug_name",
-            "confidence_zscore",
-            "cytotoxicity_mean",
-            "logBB",
-            "bbb_permeable",
-        ]
+    # Specify columns to keep
+    # cytotoxicity_cols
+    drug_cytotoxicity_cols = [
+        "cytotoxicity_activity_id",
+        "cytotoxicity_assay_description",
+        "cytotoxicity_assay_type",
+        "cytotoxicity_standard_type",
+        "cytotoxicity_standard_units",
+        "cytotoxicity_standard_value",
+        "cytotoxicity_target_pref_name",
+        "cytotoxicity_pchembl_value",
     ]
+
+    drug_score_cols = [
+        "drug_name",
+        "confidence_zscore",
+    ]
+
+    bbb_cols = [
+        "logBB",
+        "bbb_permeable",
+    ]
+
+    ranked_drug_candidates_df = ranked_drug_candidates_df[
+        drug_score_cols + drug_cytotoxicity_cols + bbb_cols
+    ]
+
     # Return the ranked list as a list of dictionaries
     return ranked_drug_candidates_df.sort_values(
         "confidence_zscore", ascending=False

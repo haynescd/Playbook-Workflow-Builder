@@ -2,7 +2,7 @@ import { MetaNode } from '@/spec/metanode'
 import { z } from 'zod'
 import python from '@/utils/python'
 import { Table, Cell, Column } from '@/app/components/Table'
-import { drug_icon } from '@/icons'
+import { drug_icon, weighted_icon } from '@/icons'
 import { downloadBlob } from '@/utils/download'
 import { ScoredDrugs } from '@/components/core/scored'
 import { Button } from '@blueprintjs/core'
@@ -14,14 +14,21 @@ export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
     .meta({
         label: 'Ranked Drug Toxicity',
         description: `Drugs Ranked by Cytotoxicity, Blood Brain Barrier and DrugShot`,
-        icon: [drug_icon]
+        icon: [drug_icon, weighted_icon]
     })
     .codec(z.array(z.object({
         drug_name: z.string(),
         confidence_zscore: z.string(),
-        cytotoxicity_mean: z.string(),
         logBB: z.number(),
         bbb_permeable: z.string(),
+        cytotoxicity_activity_id: z.number(),
+        cytotoxicity_assay_description: z.string().nullable(),
+        cytotoxicity_assay_type: z.string(),
+        cytotoxicity_standard_type: z.string().nullable(),
+        cytotoxicity_standard_units: z.string().nullable(),
+        cytotoxicity_standard_value: z.number().nullable(),
+        cytotoxicity_target_pref_name: z.string().nullable(),
+        cytotoxicity_pchembl_value: z.number(),
     })))
     .view(rankedListTable => {
         return (
@@ -37,7 +44,28 @@ export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
                     numRows={rankedListTable.length}
                     enableGhostCells
                     enableFocusedCell
-
+                    downloads={{
+                        JSON: () => downloadBlob(new Blob([JSON.stringify(rankedListTable)], { type: 'application/json;charset=utf-8' }), 'data.json'),
+                        CSV: () => downloadBlob(new Blob([
+                            [
+                                `drug_name,confidence_zscore,cytotoxicity_activity_id,cytotoxicity_assay_description,cytotoxicity_assay_type,cytotoxicity_standard_type,cytotoxicity_standard_units,cytotoxicity_standard_value,cytotoxicity_target_pref_name,cytotoxicity_pchembl_value,logBB,bbb_permeable`,
+                                ...(rankedListTable.map((record) => [
+                                    record.drug_name,
+                                    record.confidence_zscore,
+                                    record.cytotoxicity_activity_id,
+                                    record.cytotoxicity_assay_description,
+                                    record.cytotoxicity_assay_type,
+                                    record.cytotoxicity_standard_type,
+                                    record.cytotoxicity_standard_units,
+                                    record.cytotoxicity_standard_value,
+                                    record.cytotoxicity_target_pref_name,
+                                    record.cytotoxicity_pchembl_value,
+                                    record.logBB,
+                                    record.bbb_permeable,
+                                ].join(',')))
+                            ].join('\n')
+                        ], { type: 'text/csv;charset=utf-8' }), 'data.csv')
+                    }}
                 >
                     <Column
                         name="Drug Name"
@@ -48,8 +76,32 @@ export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
                         cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].confidence_zscore}</Cell>}
                     />
                     <Column
-                        name="Cytotoxicity Mean"
-                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_mean}</Cell>}
+                        name="Cytotoxicity Activity ID"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_activity_id}</Cell>}
+                    />
+                    <Column
+                        name="Cytotoxicity Assay Description"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_assay_description}</Cell>}
+                    />
+                    <Column
+                        name="Cytotoxicity Assay Type"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_assay_type}</Cell>}
+                    />
+                    <Column
+                        name="Cytotoxicity PCHEMBL Value"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_pchembl_value}</Cell>}
+                    />
+                    <Column
+                        name="Cytotoxicity Standard Type"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_standard_type}</Cell>}
+                    />
+                    <Column
+                        name="Cytotoxicity Standard Units"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_standard_units}</Cell>}
+                    />
+                    <Column
+                        name="Cytotoxicity Standard Value"
+                        cellRenderer={row => <Cell key={row + ''}>{rankedListTable[row].cytotoxicity_standard_value}</Cell>}
                     />
                     <Column
                         name="LogBB"
@@ -79,6 +131,5 @@ export const RankedListDrugToxicity = MetaNode(`[RankedListOfDrugsCandidates]`)
         )
     })
     .story(props => ({
-
     }))
     .build()
