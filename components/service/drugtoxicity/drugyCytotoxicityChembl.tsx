@@ -2,7 +2,7 @@ import { MetaNode } from '@/spec/metanode'
 import { z } from 'zod'
 import python from '@/utils/python'
 import { Table, Cell, Column } from '@/app/components/Table'
-import { drug_icon } from '@/icons'
+import { drug_icon, weighted_icon } from '@/icons'
 import { downloadBlob } from '@/utils/download'
 import { ScoredDrugs } from '@/components/core/scored'
 
@@ -11,7 +11,7 @@ export const DrugCytotoxictyChembl = MetaNode(`[DrugCytotoxictyChemblTable]`)
         label: 'Drug Cytotoxicty (CHEMBL)',
         description: `Drug Cytotoxicty CHEMBL`,
         color: '#98D7C2',
-        icon: [drug_icon]
+        icon: [drug_icon, weighted_icon]
     })
     .codec(z.array(z.object({
         activity_id: z.number(),

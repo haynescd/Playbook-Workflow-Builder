@@ -2,7 +2,7 @@ import { MetaNode } from '@/spec/metanode'
 import { z } from 'zod'
 import python from '@/utils/python'
 import { Table, Cell, Column } from '@/app/components/Table'
-import { drug_icon } from '@/icons'
+import { drug_icon, weighted_icon } from '@/icons'
 import { downloadBlob } from '@/utils/download'
 import { ScoredDrugs } from '@/components/core/scored'
 
@@ -12,7 +12,7 @@ export const DrugBloodBrainBarrier = MetaNode(`[DrugBloodBrainBarrierTable]`)
         label: 'Drug Blood Brain Barrier Permeability',
         description: `Drug Blood Brain Barrier Permeability`,
         color: '#98D7C2',
-        icon: [drug_icon]
+        icon: [drug_icon, weighted_icon]
     })
     .codec(z.array(z.object({
         drug_name: z.string(),
@@ -74,6 +74,6 @@ export const QueryDrugBloodBrainBarrier = MetaNode('QueryDrugBloodBrainBarrier')
         )
     })
     .story(props => ({
-        abstract: ``
+        abstract: `Query the B3DB Database for blood-brain barrier (BBB) permeability data \\ref{doi:10.1038/s41597-021-01069-5}.`
     }))
     .build()
