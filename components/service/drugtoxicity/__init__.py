@@ -72,14 +72,18 @@ def query_drug_cytotoxicty_from_chembl(drugs: list[dict]):
         "target_pref_name",
         "pchembl_value",
     ]
-    # Create a DataFrame from the API response
-    drug_cytotoxicity_df = pd.DataFrame(results)[cols]
-    # Convert specific columns to numeric types for further analysis
-    drug_cytotoxicity_df[["pchembl_value", "standard_value"]] = (
-        drug_cytotoxicity_df[["pchembl_value", "standard_value"]].apply(
-            pd.to_numeric
+
+    drug_cytotoxicity_df = pd.DataFrame(columns=cols)
+
+    if results:
+        # Create a DataFrame from the API response
+        drug_cytotoxicity_df = pd.DataFrame(results)[cols]
+        # Convert specific columns to numeric types for further analysis
+        drug_cytotoxicity_df[["pchembl_value", "standard_value"]] = (
+            drug_cytotoxicity_df[["pchembl_value", "standard_value"]].apply(
+                pd.to_numeric
+            )
         )
-    )
 
     # Sort by molecule name and return the results as a list of dictionaries
     return drug_cytotoxicity_df.sort_values("molecule_pref_name").to_dict(
