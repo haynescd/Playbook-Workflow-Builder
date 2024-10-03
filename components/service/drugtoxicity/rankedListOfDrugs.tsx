@@ -5,7 +5,6 @@ import { Table, Cell, Column } from '@/app/components/Table'
 import { drug_icon, weighted_icon } from '@/icons'
 import { downloadBlob } from '@/utils/download'
 import { ScoredDrugs } from '@/components/core/scored'
-import { Button } from '@blueprintjs/core'
 import { DrugCytotoxictyChembl } from './drugyCytotoxicityChembl'
 import { DrugBloodBrainBarrier } from './drugBloodBrainBarrierPermeability'
 
@@ -14,7 +13,7 @@ export const RankedDrugToxicity = MetaNode(`[RankedDrugToxicityTable]`)
     .meta({
         label: 'Ranked Drug Toxicity',
         description: `Drugs Ranked by Cytotoxicity, Blood Brain Barrier and DrugShot`,
-        icon: [drug_icon, weighted_icon]
+        icon: [drug_icon, weighted_icon],
     })
     .codec(z.array(z.object({
         drug_name: z.string(),
